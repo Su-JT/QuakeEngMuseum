@@ -444,9 +444,9 @@ export default {
       else if(that.unityMessage[0] === '2'){          //'2,6,8,10/r'
         that.setting_measure.step = '2';
         var dis = that.unityMessage.split(',');       //["2","6","8","10/r"]
-        that.setting_measure.distance[0] = dis[1] - 0;
-        that.setting_measure.distance[1] = dis[2] - 0;
-        that.setting_measure.distance[2] = dis[3].split('\r')[0] - 0;
+        that.setting_measure.distance[0] = dis[1];
+        that.setting_measure.distance[1] = dis[2];
+        that.setting_measure.distance[2] = dis[3].split('\r')[0];
         that.setting_measure.has_data = true;
       }
     },
