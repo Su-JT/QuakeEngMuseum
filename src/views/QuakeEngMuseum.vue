@@ -15,17 +15,17 @@ for (let i = 0; i < data_A.length; i++){
 }
 var sel_2_A = Array.from(uniqueSet);
 
-var uniqueSet = new Set();
+var uniqueSet = new Set();    
 for (let i = 0; i < data_B.length; i++){
   if(data_B[i].state === '1')
-    uniqueSet.add(data_B[i].name[0]);
+    uniqueSet.add(data_B[i].name[0]);  
 }
 var sel_2_B = Array.from(uniqueSet);
 
-var uniqueSet = new Set();
+var uniqueSet = new Set();    
 for (let i = 0; i < data_C.length; i++){
   if(data_C[i].state === '1')
-    uniqueSet.add(data_C[i].name[0]);
+    uniqueSet.add(data_C[i].name[0]);  
 }
 var sel_2_C = Array.from(uniqueSet);
 //console.log(sel_2_C);
@@ -59,22 +59,22 @@ export default {
       setting_camera:{
         is_info: false,           //是否显示使用说明
         //is_keyboard: false,     //放此处watch不到所以挪出
-        //is_mouse: false,
+        //is_mouse: false,          
         modeSelection: '0',       //  靠近/降落
       },//其他按钮： 重置
       is_keyboard: true,         //是否允许使用键盘
       is_mouse: true,            //是否允许使用鼠标
+
       is_rotating:'0',         //是否正在旋转
       rotating:null,           //记录一下旋转面
       skyType: true ,         //false白天，true为晚间
-
 
       setting_compare:{
         is_open: false,         //是否开启对比
         is_show: true,          //是否显示坐标等信息
         max_num: 1,             //对比数量      1-10
         points:[],              //url,info,state  state各点位card显示状态['1'显示, '0'不显示, '2'中间态(显示卡片不显示详细内容)]
-        type: false,
+        type: false,             
       },//其他按钮： 清空
       type_compare: false,      //对比显示形式  false逐个/true全部
 
@@ -144,7 +144,7 @@ export default {
       var that  = this;
       if(that.setting_type === 'measure'){
         that.setting_measure.step = '0';
-        that.setting_measure.is_open = false;
+        that.setting_measure.is_open = false;   
         that.$refs.unityModel.isMeasuring(that.setting_measure.is_open.toString());
       }
       else{
@@ -213,16 +213,11 @@ export default {
       var des = this.setting_compare.points[index];
       that.$refs.unityModel.hide_des(des.info[0].data + "," + des.info[1].data + "," + des.info[2].data);
       //alert("hide_des: " + des.info[0].data + "," + des.info[1].data + "," + des.info[2].data);
-      that.setting_compare.points.splice(index, 1);
+      that.setting_compare.points.splice(index, 1);  
     },
     handleClick_info(){               //相机--是否显示使用说明
       var that = this;
       that.setting_camera.is_info = !that.setting_camera.is_info;
-    },
-    handleClick_setSky(){             //相机--改变天空背景
-      var that = this;
-      that.$refs.unityModel.setSky((this.skyType ? 1 : 0 ).toString());//true的话传1，false传0
-      
     },
     handleClick_mode(){               //相机-模式选择 靠近/降落
       //alert(this.setting_camera.modeSelection);
@@ -239,12 +234,13 @@ export default {
     },
     handleClick_quick(type){          //相机--快捷选择    'A' 'B' 'C'
       var that = this;
+
       if(type==='A')//记录旋转的面
-        this.rotating='A'
+        this.rotating='A';
       else if(type==='B')
-        this.rotating='B'
+        this.rotating='B';
       else if(type==='C')
-        this.rotating='C'
+        this.rotating='C';
 
       that.$refs.unityModel.setQuick(type.toString());
     },
@@ -309,11 +305,15 @@ export default {
         }
       }
     },
+    handleClick_setSky(){             //相机--改变天空背景
+      var that = this;
+      that.$refs.unityModel.setSky((this.skyType ? 1 : 0 ).toString());//true的话传1，false传0
+    },
     add_points(image_url, x, y, z){       //对比的信息列表    添加新元素+显示在模型上
       var that = this;
       var points = that.setting_compare.points;
       while(points.length >= that.setting_compare.max_num){     //已满，删去第一个         //在模型上隐藏位点
-        that.$refs.unityModel.hide_des(points[0].info[0].data + "," + points[0].info[1].data + "," + points[0].info[2].data);
+        that.$refs.unityModel.hide_des(points[0].info[0].data + "," + points[0].info[1].data + "," + points[0].info[2].data);      
         //alert("hide_des: " + points[0].info[0].data + "," + points[0].info[1].data + "," + points[0].info[2].data);
         that.setting_compare.points.splice(0, 1);                       //列表中删去
       }
@@ -328,7 +328,7 @@ export default {
       points.push({            //添加新元素
           url:image_url,
           //srcList:[ image_url ],
-          info:[
+          info:[        
             {name:'x', data: x},
             {name:'y', data: y},
             {name:'z', data: z}  ],
@@ -340,7 +340,7 @@ export default {
     addSelections(index, datalist){     //更新选项
       var that = this;
       that.selections[index] = [];
-      if(index === 1){
+      if(index === 1){          
         for (let i = 0; i < datalist.length; i++){
           that.selections[index].push(
             {value: datalist[i], label: datalist[i]}
@@ -356,16 +356,16 @@ export default {
       }
     },
     updateSelections(index){            //更新选项
-      var that = this;
+      var that = this;      
       if(index === 0){        // A  B  C
         that.select_2 = null;
         that.select_3 = null;
 
-        var sel_2 = sel_2_A;
+        var sel_2 = sel_2_A;        
         if(that.select_1 === 'B')
           sel_2 = sel_2_B;
         else if(that.select_1 === 'C')
-          sel_2 = sel_2_C;
+          sel_2 = sel_2_C;  
 
         that.addSelections(1, sel_2);
       }
@@ -374,12 +374,12 @@ export default {
         var sel_3 = [];
         var datalist = [];
         if(that.select_1 === 'A')
-          datalist = data_A;
+          datalist = data_A;      
         else if(that.select_1 === 'B')
-          datalist = data_B;
+          datalist = data_B;     
         else if(that.select_1 === 'C')
           datalist = data_C;
-
+    
         for (let i = 0; i < datalist.length; i++){
           if(datalist[i].name.startsWith(that.select_2) && datalist[i].state === '1'){     //a_004.JPG =>  0.a_004  (index.name)
             sel_3.push(i + "." +datalist[i].name.split(".")[0]);
@@ -402,13 +402,13 @@ export default {
       //alert(mess.x + "," + mess.y + "," + mess.z);
       //this.$refs.unityModel.sendOrders(mess.x + "," + mess.y + "," + mess.z);
 
-      var imageURL = "/DZGCG/Pictures/" + that.select_1 +"/" + that.select_3.split(".")[1] + ".JPG";
-
+      var imageURL = "/DZGCG/Pictures/" + that.select_1 +"/" + that.select_3.split(".")[1] + ".JPG";   
+      
       //修改为OBS读取
       var baseURL = "https://qem-pictures.obs.cn-north-4.myhuaweicloud.com";
       imageURL = imageURL.replace('/DZGCG', baseURL);
-
-
+  
+      
       //alert(imageURL);
       that.url = imageURL;
       //that.srcList = [imageURL];
@@ -419,7 +419,7 @@ export default {
       that.add_points(imageURL, mess.x, mess.y, mess.z);        ////加入对比列表并在模型上显示
     },
 
-    updatePicture(){            //接收unity信息后更新显示
+    updatePicture(){            //接收unity信息后更新显示          
       var that = this;                              //"52.12,13.28,85.74,/DZGCG/Pictures/A/a_004.JPG\r"
       var des_url = that.unityMessage.split(',');   //["52.12","13.28","85.74","/DZGCG/Pictures/A/a_004.JPG\r"]
       that.info[0].data = des_url[0] - 0;
@@ -432,7 +432,6 @@ export default {
       imageURL = imageURL.replace('/DZGCG', baseURL);
 
       that.url = imageURL;
-
       //that.srcList = [imageURL];
       that.add_points(imageURL, des_url[0] - 0, des_url[1] - 0, des_url[2] - 0);      //加入对比列表并在模型上显示
     },
@@ -454,17 +453,18 @@ export default {
     recieve(event){
         var that = this;
         that.unityMessage = event.data.handle;
-        //alert(event.data.type);
+        //alert(event.data.type); 
         if(event.data.type === '0')
           that.updatePicture();
         else if(event.data.type === '1')   //测距相关      '1/r'   '2,6,8,10/r'
           that.updateDistance();
+        
         else if(event.data.type === '2')   //提示当前是否正在旋转
           that.is_rotating=that.unityMessage ;
-
-        console.log('(来自vue)' + that.unityMessage);
-        //console.log('(来自vue)' + event.data.type);
-
+        
+        console.log('(来自vue)' + that.unityMessage); 
+        //console.log('(来自vue)' + event.data.type); 
+        
     },
   },
   mounted(){
@@ -515,7 +515,7 @@ export default {
       @click="sendSelections"
       color="#626aef"
       :disabled="!select_3"
-      >
+      > 
       确定
       </el-button>
     </div>
@@ -529,19 +529,19 @@ export default {
                 <el-icon><VideoCamera /></el-icon>
                 <span>相机</span>
               </span>
-            </template>
+            </template>          
             <a>
-              <el-checkbox
-                v-model="is_keyboard"
-                label="启用键盘控制"
+              <el-checkbox 
+                v-model="is_keyboard" 
+                label="启用键盘控制" 
                 size="large"
               />
               <br>
-              <el-checkbox
-                v-model="is_mouse"
-                label="启用鼠标控制"
-                size="large"
-              />
+              <el-checkbox 
+                v-model="is_mouse" 
+                label="启用鼠标控制" 
+                size="large" 
+              /> 
               <br>
               <a class="text_2">
                 移动方式：
@@ -587,7 +587,7 @@ export default {
                 </el-row>
               </a>
               <a class="text_2">
-                <a> 切换模式： 
+                <a> 夜景模式： 
                   <el-switch  v-model="this.skyType"  @click="handleClick_setSky" />
                 </a>
               </a>
@@ -600,7 +600,7 @@ export default {
             </el-button>
             </el-row>
             <a v-if="setting_camera.is_info" class="text_info">
-              <el-scrollbar height="160px">
+              <el-scrollbar height="130px">
                 <li>键盘控制：</li>
                 <a class="text_3">
                   <el-row>
@@ -647,19 +647,19 @@ export default {
                 <el-icon><Histogram /></el-icon>
                 <span>对比</span>
               </span>
-            </template>
-            <a>
-              开启对比：
-              <el-switch
-              v-model="setting_compare.is_open"
+            </template> 
+            <a> 
+              开启对比： 
+              <el-switch 
+              v-model="setting_compare.is_open" 
               @click="handleClick_compare" />
             </a>
             <br>
             <a>
               对比数：&emsp;
-              <el-input-number
-              v-model="setting_compare.max_num"
-              :min="1"
+              <el-input-number 
+              v-model="setting_compare.max_num" 
+              :min="1" 
               :max="10"
               :step="1"
               :disabled="!setting_compare.is_open" />
@@ -667,8 +667,8 @@ export default {
             <br>
             <a>
               显示坐标：
-              <el-switch
-              v-model="setting_compare.is_show"
+              <el-switch 
+              v-model="setting_compare.is_show" 
               :disabled="!setting_compare.is_open" />
             </a>
             <br>
@@ -681,18 +681,18 @@ export default {
                 style="--el-switch-on-color: #6A8BFF; --el-switch-off-color: #75D9D3"
                 active-text="显示全部"
                 inactive-text="逐个显示"
-                :disabled="!setting_compare.is_open"
+                :disabled="!setting_compare.is_open" 
               />
             </a>
             <br>
-            <el-button
-              color="#626aef"
-              @click="handleClick_clear"
-              :dark="isDark"
+            <el-button 
+              color="#626aef" 
+              @click="handleClick_clear" 
+              :dark="isDark" 
               :disabled="!setting_compare.is_open">
               清空
             </el-button>
-
+            
           </el-tab-pane>
 
           <el-tab-pane name="measure">
@@ -705,14 +705,14 @@ export default {
               </span>
             </template>
 
-            <a>
-              开启测距：
-              <el-switch
-              v-model="setting_measure.is_open"
+            <a> 
+              开启测距： 
+              <el-switch 
+              v-model="setting_measure.is_open" 
               @click="handleClick_measure" />
             </a>
 
-            <div class="measure_steps">
+            <div class="measure_steps">  
               <el-steps direction="vertical" :active="Number(setting_measure.step)" finish-status="success">
                 <el-step title="选择第一个点位" />
                 <el-step title="选择第二个点位" />
@@ -755,8 +755,8 @@ export default {
             <a>&emsp;{{ data.data }}</a>
           </p>
           <a v-if="url">
-            <el-button @click="handleClick_divide(url,info)" round>
-              <el-icon><Scissor /></el-icon>进行分割
+            <el-button @click="handleClick_divide(url,info)" round> 
+              <el-icon><Scissor /></el-icon>进行分割 
             </el-button>
           </a>
         </div>
@@ -767,8 +767,8 @@ export default {
         <el-scrollbar>
           <div style="display: flex;">
             <a
-              v-for="(point, index) in setting_compare.points.slice().reverse()"
-              :key="index"
+              v-for="(point, index) in setting_compare.points.slice().reverse()" 
+              :key="index" 
             >
             <el-card
               v-if="point.state === '1'"
@@ -1041,7 +1041,7 @@ export default {
   font-size: 16px !important; /* 使用 !important 来提高优先级 */
 }
 .el-radio.el-radio--large .el-radio__label {
-  font-size: 15px !important;
+  font-size: 15px !important; 
 }
 .text_2{
   font-size: 15px;
@@ -1125,7 +1125,7 @@ export default {
 }
 
 .divide{
-  line-height: 25px;
+  line-height: 25px; 
 }
 .divide.steps.el-step__line {
       top: 50% !important;
