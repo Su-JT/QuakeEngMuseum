@@ -18,6 +18,11 @@ const router = createRouter({
       component: () => import('../views/QuakeEngMuseum.vue')
     },
     {
+      path: '/about/Composite',
+      name: 'Composite',
+      component: () => import('../views/Composite.vue')
+    },
+    {
       path: '/about/Library',
       name: 'Library',
       component: () => import('../views/Library.vue')

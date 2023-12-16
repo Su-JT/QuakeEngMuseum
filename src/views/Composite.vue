@@ -2,36 +2,34 @@
 import{ Location,Setting,Search,Delete,QuestionFilled,InfoFilled,VideoCamera,Histogram,
   RefreshLeft,RefreshRight,ZoomIn,ZoomOut,Place,Scissor,Hide,More } from '@element-plus/icons-vue';
 import axios  from "axios";
-import Model from '@/components/model_1.vue';
-import data_A from '@/assets/imageCSV_1/new_A.csv';
-import data_B from '@/assets/imageCSV_1/new_B.csv';
-import data_C from '@/assets/imageCSV_1/new_C.csv';
+import Model from '@/components/model_2.vue';
+import data_SE from '@/assets/imageCSV_2/SE.csv';
+import data_SW from '@/assets/imageCSV_2/SW.csv';
 
 /* 处理数据，获得选项2 */
-var uniqueSet = new Set();    // 创建一个空Set对象
-for (let i = 0; i < data_A.length; i++){
-  if(data_A[i].state === '1')
-    uniqueSet.add(data_A[i].name[0]);   // 将字母添加到Set对象中，重复的字母不会被重复添加
+var sel_2_SE = [];
+var middle = new Set();
+for (let i = 0; i < data_SE.length; i++) {
+    var middle_part = data_SE[i].name.split("_")[1];    // SE115_01-03F_i_001.jpg   ['SE115', '01-03F', 'i', '001.jpg']
+    if (!middle.has(middle_part)) {
+        middle.add(middle_part);
+        sel_2_SE.push(middle_part);
+    }
 }
-var sel_2_A = Array.from(uniqueSet);
-
-var uniqueSet = new Set();    
-for (let i = 0; i < data_B.length; i++){
-  if(data_B[i].state === '1')
-    uniqueSet.add(data_B[i].name[0]);  
+//console.log(sel_2_SE);
+var sel_2_SW = [];
+var middle = new Set();
+for (let i = 0; i < data_SW.length; i++) {
+    var middle_part = data_SW[i].name.split("_")[1];    
+    if (!middle.has(middle_part)) {
+        middle.add(middle_part);
+        sel_2_SW.push(middle_part);
+    }
 }
-var sel_2_B = Array.from(uniqueSet);
-
-var uniqueSet = new Set();    
-for (let i = 0; i < data_C.length; i++){
-  if(data_C[i].state === '1')
-    uniqueSet.add(data_C[i].name[0]);  
-}
-var sel_2_C = Array.from(uniqueSet);
-//console.log(sel_2_C);
+//console.log(sel_2_SW);
 
 export default {
-  name: 'quake',
+  name: 'comp',
   components: {
     Model,
     Location,
@@ -85,14 +83,13 @@ export default {
         has_data: false,      //是否接收到距离数据
       },
 
-      select_1: null,
-      select_2: null,
+      select_1: null,           // SE115/SW205
+      select_2: null,           // 01-03F/...
       select_3: null,
       selections:[
         [
-          {value: 'A',label: 'A'},
-          {value: 'B',label: 'B'},
-          {value: 'C', label: 'C'}
+          {value: 'SE115',label: 'SE115'},
+          {value: 'SW205',label: 'SW205'},
         ],
         [],
         []
@@ -232,15 +229,13 @@ export default {
       var that = this;
       that.$refs.unityModel.setSize(type.toString());
     },
-    handleClick_quick(type){          //相机--快捷选择    'A' 'B' 'C'
+    handleClick_quick(type){          //相机--快捷选择    'SE' 'SW'
       var that = this;
 
-      if(type==='A')//记录旋转的面
-        this.rotating='A';
-      else if(type==='B')
-        this.rotating='B';
-      else if(type==='C')
-        this.rotating='C';
+      if(type==='SE')//记录旋转的面
+        this.rotating='SE';
+      else if(type==='SW')
+        this.rotating='SW';
 
       that.$refs.unityModel.setQuick(type.toString());
     },
@@ -337,7 +332,7 @@ export default {
       that.$refs.unityModel.draw_des(x + "," + y + "," + z);    //在模型上显示
       //alert("draw_des" + x + "," + y + "," + z);
     },
-    addSelections(index, datalist){     //更新选项
+    addSelections(index, datalist, child){     //更新选项
       var that = this;
       that.selections[index] = [];
       if(index === 1){          
@@ -348,68 +343,81 @@ export default {
         }
       }
       else{     //记录在data_X中的位置,便于发送信息
-        for (let i = 0; i < datalist.length; i++){     //0.a_004  (index.name)  =>  0.a_004  a_004
+        for (let i = 0; i < datalist.length; i++){
+          var temp_children = [];
+          for(let j = 0; j < child[i].length; j++){     //0.i_001 => 0.i_001  i_001
+            temp_children.push({value: child[i][j], label: child[i][j].split(".")[1]});
+          }  
           that.selections[index].push(
-            {value: datalist[i], label: datalist[i].split(".")[1]}
+            {
+                value: datalist[i],
+                label: datalist[i],
+                children: temp_children
+            }
           );
         }
       }
     },
     updateSelections(index){            //更新选项
       var that = this;      
-      if(index === 0){        // A  B  C
+      if(index === 0){        // SE115 SW205
         that.select_2 = null;
         that.select_3 = null;
 
-        var sel_2 = sel_2_A;        
-        if(that.select_1 === 'B')
-          sel_2 = sel_2_B;
-        else if(that.select_1 === 'C')
-          sel_2 = sel_2_C;  
+        var sel_2 = sel_2_SE;        
+        if(that.select_1 === 'SW205')
+          sel_2 = sel_2_SW;
 
-        that.addSelections(1, sel_2);
+        that.addSelections(1, sel_2, []);
       }
-      else if(index === 1){   // A-a
+      else if(index === 1){   // 01-03F
         that.select_3 = null;
         var sel_3 = [];
+        var sel_3_children = [];
         var datalist = [];
-        if(that.select_1 === 'A')
-          datalist = data_A;      
-        else if(that.select_1 === 'B')
-          datalist = data_B;     
-        else if(that.select_1 === 'C')
-          datalist = data_C;
-    
+        if(that.select_1 === 'SE115')
+          datalist = data_SE;      
+        else if(that.select_1 === 'SW205')
+          datalist = data_SW;     
+        
+        var uniqueSet = new Set();    // 创建一个空Set对象
         for (let i = 0; i < datalist.length; i++){
-          if(datalist[i].name.startsWith(that.select_2) && datalist[i].state === '1'){     //a_004.JPG =>  0.a_004  (index.name)
-            sel_3.push(i + "." +datalist[i].name.split(".")[0]);
-          }
+            if(datalist[i].state === '0')
+                continue;
+            var parts = datalist[i].name.split("_");    // SE115_01-03F_i_001.jpg   ['SE115', '01-03F', 'i', '001.jpg']
+            if(that.select_2 === parts[1]){             // 01-03F
+                if (!uniqueSet.has(parts[2])) {
+                    uniqueSet.add(parts[2]); 
+                    sel_3.push(parts[2]);
+                    sel_3_children.push([]);
+                }
+                else{
+                    var index = sel_3.indexOf(parts[2]);                    //  0.i_001
+                    sel_3_children[index].push(i + "." + parts[2] + "_" + parts[3].split(".")[0]);
+                }
+            }
         }
-        that.addSelections(2, sel_3);
+        that.addSelections(2, sel_3, sel_3_children);
       }
       else{     //index === 2   //A-a-a_004
       }
     },
     sendSelections(){       //  按钮“确定”    1.向unity发坐标   2. 更新图片
       var that = this;
-      //alert(that.select_1+" "+that.select_2+" "+that.select_3);
-      var index = that.select_3.split(".")[0] - 0;
-      var mess = data_A[index];
-      if(that.select_1 === 'B')
-        mess = data_B[index];
-        else if(that.select_1 === 'C')
-        mess = data_C[index];
+      //alert(that.select_1+" "+that.select_2+" "+that.select_3[1]);
+      //console.log(that.select_3);
+    
+      var index = that.select_3[1].split(".")[0] - 0;
+      var mess = data_SE[index];
+      if(that.select_1 === 'SW205')
+        mess = data_SW[index];
       //alert(mess.x + "," + mess.y + "," + mess.z);
       //this.$refs.unityModel.sendOrders(mess.x + "," + mess.y + "," + mess.z);
 
-      var imageURL = "/DZGCG/Pictures/" + that.select_1 +"/" + that.select_3.split(".")[1] + ".JPG";   
+      var baseURL = "https://zhl-pictures.obs.cn-north-4.myhuaweicloud.com/Pictures/";
+      var imageURL = baseURL + that.select_1 + "/" + that.select_1 + "_" + that.select_2 + "_" + that.select_3[1].split(".")[1] + ".jpg";
       
-      //修改为OBS读取
-      var baseURL = "https://qem-pictures.obs.cn-north-4.myhuaweicloud.com";
-      imageURL = imageURL.replace('/DZGCG', baseURL);
-  
-      
-      //alert(imageURL);
+      alert(imageURL);
       that.url = imageURL;
       //that.srcList = [imageURL];
       that.info[0].data = mess.x;
@@ -477,7 +485,7 @@ export default {
   <div class="about">
     <div class="some-text">
       <el-icon><Location /></el-icon>
-      同济大学地震工程馆
+      衷和楼（综合楼）
     </div>
 
     <div class="select-wrapper">
@@ -502,12 +510,13 @@ export default {
         :disabled="!select_1"
       />
       &ensp;
-      <el-select-v2
+      <el-cascader
         v-model="select_3"
         :options="selections[2]"
         placeholder="Please select"
         @change="updateSelections(2)"
         size="large"
+        :show-all-levels="false"
         :disabled="!select_2"
       />
       &ensp;
@@ -575,14 +584,11 @@ export default {
               <a class="text_2">
                 快捷选择：
                 <el-row :span="24" style="margin-top: -2%; margin-bottom: 3%;">
-                <el-button  @click="handleClick_quick('A')" :loading="(this.is_rotating==='1')&&(this.rotating==='A')">
-                  <el-icon><Place /></el-icon>&ensp;A
+                <el-button  @click="handleClick_quick('SE')" :loading="(this.is_rotating==='1')&&(this.rotating==='SE')">
+                  <el-icon><Place /></el-icon>&ensp;SE115
                 </el-button>
-                <el-button @click="handleClick_quick('B')" :loading="(this.is_rotating==='1')&&(this.rotating==='B')">
-                  <el-icon><Place /></el-icon>&ensp;B
-                </el-button>
-                <el-button @click="handleClick_quick('C')" :loading="(this.is_rotating==='1')&&(this.rotating==='C')">
-                  <el-icon><Place /></el-icon>&ensp;C
+                <el-button @click="handleClick_quick('SW')" :loading="(this.is_rotating==='1')&&(this.rotating==='SW')">
+                  <el-icon><Place /></el-icon>&ensp;SW205
                 </el-button>
                 </el-row>
               </a>
@@ -990,6 +996,7 @@ export default {
 
   <br><br><br>
   </div>
+
 </template>
 
 <style>
@@ -1132,5 +1139,4 @@ export default {
       top: 50% !important;
       height: 4px;
     }
-
 </style>
