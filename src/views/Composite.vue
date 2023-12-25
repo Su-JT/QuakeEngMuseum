@@ -10,7 +10,7 @@ import data_SW from '@/assets/imageCSV_2/SW.csv';
 var sel_2_SE = [];
 var middle = new Set();
 for (let i = 0; i < data_SE.length; i++) {
-    var middle_part = data_SE[i].name.split("_")[1];    // SE115_01-03F_i_001.jpg   ['SE115', '01-03F', 'i', '001.jpg']
+    var middle_part = data_SE[i].name.split("_")[1];    // SE-20_01-03F_i_001.jpg   ['SE-20', '01-03F', 'i', '001.jpg']
     if (!middle.has(middle_part)) {
         middle.add(middle_part);
         sel_2_SE.push(middle_part);
@@ -83,13 +83,13 @@ export default {
         has_data: false,      //是否接收到距离数据
       },
 
-      select_1: null,           // SE115/SW205
+      select_1: null,           // SE-20/SW-20
       select_2: null,           // 01-03F/...
       select_3: null,
       selections:[
         [
-          {value: 'SE115',label: 'SE115'},
-          {value: 'SW205',label: 'SW205'},
+          {value: 'SE-20',label: 'SE-20'},
+          {value: 'SW-20',label: 'SW-20'},
         ],
         [],
         []
@@ -100,30 +100,11 @@ export default {
       info: [
         {name:'x', data: 0},
         {name:'y', data: 0},
-        {name:'z', data: 0}
+        {name:'z', data: 0},
+        {name:'path', data:''},
       ],
       unityMessage: '',     //来自unity
 
-      StoneCrackDetect:{
-        is_show: false,      //是否开启图像分割栏
-        raw_path: '',       //原图路径
-        path: '',           //原图路径(请求接口时使用)
-        des:{               //原图坐标
-          x:0,
-          y:0,
-          z:0
-        },
-        has_crack: false,   //有无裂痕
-        crack_data: {},     //裂痕数据
-        seg_path: '',       //图像分割中间结果图片
-        seg_count: 0,       //分割块数
-        block_data: [{}],   //每块数据
-        onshow:{
-          no:[],        //要显示的块block_data中位置
-          options:[],   //选项
-        },
-        success:false,  //请求接口是否成功
-      },
     }
   },
   watch: {
@@ -239,47 +220,6 @@ export default {
 
       that.$refs.unityModel.setQuick(type.toString());
     },
-    handleClick_divide(path,info){         //进行图像分割        path路径 info坐标
-      var that = this;
-      var SCD = that.StoneCrackDetect;
-      SCD.is_show = true;           //显示分隔栏
-      SCD.des.x = info[0].data;     //保存坐标
-      SCD.des.y = info[1].data;
-      SCD.des.z = info[2].data;
-      SCD.onshow.no = [];
-      SCD.onshow.options = [];
-      SCD.success = false;
-      if(path){
-        //alert(path);                           // /DZGCG/Pictures/A/a_004.JPG
-        SCD.path = path.split("/DZGCG/Pictures/")[1];
-        //alert(that.StoneCrackDetect.path);    //  A/a_004.JPG
-        axios.get('/api/StoneCrackDetect/data?image_name='+ SCD.path).then(res =>{
-          SCD.has_crack = res.data.has_crack;
-          SCD.raw_path = res.data.image_path;
-          //alert(SCD.raw_path);
-          if(res.data.has_crack)
-            SCD.crack_data = res.data.crack_data;
-          SCD.success = true;
-        });
-        axios.get('/api/StoneCrackDetect/block_data?image_name='+ SCD.path).then(res=>{
-          SCD.seg_path = res.data.seg_process_image_path;
-          SCD.seg_count = res.data.seg_count;
-          SCD.block_data = res.data.block_data;
-          for(let i=0; i< SCD.seg_count; i++){
-            SCD.onshow.options.push(
-              {value: i.toString(), label: SCD.block_data[i].block_num.toString()}
-            );
-          }
-        });
-      }
-    },
-    handleClick_hideDivide(){         //隐藏分割栏
-      var that = this;
-      that.StoneCrackDetect.is_show = false;
-      that.StoneCrackDetect.onshow.no = [];
-      that.StoneCrackDetect.onshow.options = [];
-      that.StoneCrackDetect.success = false;
-    },
     handleClick_measure(){            //测距--开启测距
       var that = this;
       that.$refs.unityModel.isMeasuring(that.setting_measure.is_open.toString());
@@ -304,7 +244,7 @@ export default {
       var that = this;
       that.$refs.unityModel.setSky((this.skyType ? 1 : 0 ).toString());//true的话传1，false传0
     },
-    add_points(image_url, x, y, z){       //对比的信息列表    添加新元素+显示在模型上
+    add_points(image_url, x, y, z, path){       //对比的信息列表    添加新元素+显示在模型上
       var that = this;
       var points = that.setting_compare.points;
       while(points.length >= that.setting_compare.max_num){     //已满，删去第一个         //在模型上隐藏位点
@@ -326,7 +266,8 @@ export default {
           info:[        
             {name:'x', data: x},
             {name:'y', data: y},
-            {name:'z', data: z}  ],
+            {name:'z', data: z},
+            {name:'path',data: path}  ],
           state: '1',
       });
       that.$refs.unityModel.draw_des(x + "," + y + "," + z);    //在模型上显示
@@ -360,12 +301,12 @@ export default {
     },
     updateSelections(index){            //更新选项
       var that = this;      
-      if(index === 0){        // SE115 SW205
+      if(index === 0){        // SE-20 SW-20
         that.select_2 = null;
         that.select_3 = null;
 
         var sel_2 = sel_2_SE;        
-        if(that.select_1 === 'SW205')
+        if(that.select_1 === 'SW-20')
           sel_2 = sel_2_SW;
 
         that.addSelections(1, sel_2, []);
@@ -375,16 +316,16 @@ export default {
         var sel_3 = [];
         var sel_3_children = [];
         var datalist = [];
-        if(that.select_1 === 'SE115')
+        if(that.select_1 === 'SE-20')
           datalist = data_SE;      
-        else if(that.select_1 === 'SW205')
+        else if(that.select_1 === 'SW-20')
           datalist = data_SW;     
         
         var uniqueSet = new Set();    // 创建一个空Set对象
         for (let i = 0; i < datalist.length; i++){
             if(datalist[i].state === '0')
                 continue;
-            var parts = datalist[i].name.split("_");    // SE115_01-03F_i_001.jpg   ['SE115', '01-03F', 'i', '001.jpg']
+            var parts = datalist[i].name.split("_");    // SE-20_01-03F_i_001.jpg   ['SE-20', '01-03F', 'i', '001.jpg']
             if(that.select_2 === parts[1]){             // 01-03F
                 if (!uniqueSet.has(parts[2])) {
                     uniqueSet.add(parts[2]); 
@@ -409,7 +350,7 @@ export default {
     
       var index = that.select_3[1].split(".")[0] - 0;
       var mess = data_SE[index];
-      if(that.select_1 === 'SW205')
+      if(that.select_1 === 'SW-20')
         mess = data_SW[index];
       //alert(mess.x + "," + mess.y + "," + mess.z);
       //this.$refs.unityModel.sendOrders(mess.x + "," + mess.y + "," + mess.z);
@@ -417,31 +358,41 @@ export default {
       var baseURL = "https://zhl-pictures.obs.cn-north-4.myhuaweicloud.com/Pictures/";
       var imageURL = baseURL + that.select_1 + "/" + that.select_1 + "_" + that.select_2 + "_" + that.select_3[1].split(".")[1] + ".jpg";
       
-      alert(imageURL);
+      imageURL = imageURL.replace('SE-20/SE-20', 'SW205/SW205');    //替换为真实路径
+      imageURL = imageURL.replace('SW-20/SW-20', 'SE115/SE115');
+
+      //alert(imageURL);
       that.url = imageURL;
       //that.srcList = [imageURL];
       that.info[0].data = mess.x;
       that.info[1].data = mess.y;
       that.info[2].data = mess.z;
-
-      that.add_points(imageURL, mess.x, mess.y, mess.z);        ////加入对比列表并在模型上显示
+      that.info[3].data = that.select_1 + "_" + that.select_2 + "_" + that.select_3[1].split(".")[1] + ".jpg";
+      //alert(that.info[3].data);
+      that.add_points(imageURL, mess.x, mess.y, mess.z, that.info[3].data);        ////加入对比列表并在模型上显示
     },
 
     updatePicture(){            //接收unity信息后更新显示          
-      var that = this;                              //"52.12,13.28,85.74,/DZGCG/Pictures/A/a_004.JPG\r"
-      var des_url = that.unityMessage.split(',');   //["52.12","13.28","85.74","/DZGCG/Pictures/A/a_004.JPG\r"]
+      var that = this;                              //"50.48,29.23,0.88,/ZHL/Pictures/SE-20/SE-20_01-06F_a_001.jpg\r"
+      var des_url = that.unityMessage.split(',');   //["50.48","29.23","0.88","/ZHL/Pictures/SE-20/SE-20_01-06F_a_001.jpg\r"]
       that.info[0].data = des_url[0] - 0;
       that.info[1].data = des_url[1] - 0;
       that.info[2].data = des_url[2] - 0;
       var imageURL = des_url[3].split('\r')[0];
+      //that.info[3].data = imageURL.replace('/ZHL/Pictures/SE-20', '');
+      //that.info[3].data = imageURL.replace('/ZHL/Pictures/SW-20', '');
+      that.info[3].data = imageURL.split('/')[4];         //SE-20_01-06F_a_001.jpg
 
       //修改为OBS读取
-      var baseURL = "https://qem-pictures.obs.cn-north-4.myhuaweicloud.com";
-      imageURL = imageURL.replace('/DZGCG', baseURL);
+      var baseURL = "https://zhl-pictures.obs.cn-north-4.myhuaweicloud.com";
+      imageURL = imageURL.replace('/ZHL', baseURL);
+
+      imageURL = imageURL.replace('SE-20/SE-20', 'SW205/SW205');    //替换为真实路径
+      imageURL = imageURL.replace('SW-20/SW-20', 'SE115/SE115');
 
       that.url = imageURL;
       //that.srcList = [imageURL];
-      that.add_points(imageURL, des_url[0] - 0, des_url[1] - 0, des_url[2] - 0);      //加入对比列表并在模型上显示
+      that.add_points(imageURL, des_url[0] - 0, des_url[1] - 0, des_url[2] - 0, that.info[3].data);      //加入对比列表并在模型上显示
     },
     updateDistance(){         //接收unity信息后更新测距步骤条与测距结果
       var that = this;
@@ -585,10 +536,10 @@ export default {
                 快捷选择：
                 <el-row :span="24" style="margin-top: -2%; margin-bottom: 3%;">
                 <el-button  @click="handleClick_quick('SE')" :loading="(this.is_rotating==='1')&&(this.rotating==='SE')">
-                  <el-icon><Place /></el-icon>&ensp;SE115
+                  <el-icon><Place /></el-icon>&ensp;SE-20
                 </el-button>
                 <el-button @click="handleClick_quick('SW')" :loading="(this.is_rotating==='1')&&(this.rotating==='SW')">
-                  <el-icon><Place /></el-icon>&ensp;SW205
+                  <el-icon><Place /></el-icon>&ensp;SW-20
                 </el-button>
                 </el-row>
               </a>
@@ -760,11 +711,6 @@ export default {
             <a>{{ data.name }}:</a>
             <a>&emsp;{{ data.data }}</a>
           </p>
-          <a v-if="url">
-            <el-button @click="handleClick_divide(url,info)" round> 
-              <el-icon><Scissor /></el-icon>进行分割 
-            </el-button>
-          </a>
         </div>
       </div>
       <div v-if="setting_compare.is_open" class="compare">
@@ -790,7 +736,7 @@ export default {
               </el-row>
               <div class="compare_image">
                 <el-image
-                  style="width: 200px; height: 200px"
+                  style="width: 200px; height: 200px;"
                   :src="point.url"
                   :zoom-rate="1.2"
                   :preview-src-list="[point.url]"
@@ -812,11 +758,6 @@ export default {
                 <el-button @click="handleClick_search(setting_compare.points.length - index - 1)">
                   <el-icon><Search/></el-icon>
                 </el-button>
-                <a v-if="point.url">
-                  <el-button @click="handleClick_divide(point.url,point.info)">
-                    <el-icon><Scissor /></el-icon>
-                  </el-button>
-                </a>
                 <el-button @click="handleClick_delete(setting_compare.points.length - index - 1)">
                   <el-icon><Delete/></el-icon>
                 </el-button>
@@ -836,161 +777,6 @@ export default {
           </div>
         </el-scrollbar>
       </div>
-
-      <div v-if="StoneCrackDetect.is_show" class="divide">
-        <el-divider />
-        <p class="text_1">
-          图像分割与裂缝识别
-          <el-icon color="#409EFF" @click="handleClick_hideDivide">
-            <Hide />
-          </el-icon>
-        </p>
-
-        <el-card>
-          <el-row>
-            <el-col :span="8">
-              <p class="text_2">
-                当前图片&ensp;
-                <el-button @click="handleClick_search(-1)" size="small" circle>
-                  <el-icon><Search /></el-icon>
-                </el-button>
-              </p>
-              <el-image
-                style="width: 200px; height: 200px"
-                :src="StoneCrackDetect.raw_path"
-                :zoom-rate="1.2"
-                :preview-src-list="[StoneCrackDetect.raw_path]"
-                :initial-index="4"
-                fit="cover"
-              >
-                <template #error>
-                  <div class="image-slot">NULL</div>
-                </template>
-              </el-image>
-              <el-row>
-                x: {{ StoneCrackDetect.des.x }}&emsp;
-                y: {{ StoneCrackDetect.des.y }}&emsp;
-                z: {{ StoneCrackDetect.des.z }}
-              </el-row>
-            </el-col>
-            <el-col :span="8">
-              <p class="text_2">分割情况</p>
-              <a v-if="StoneCrackDetect.success">
-                <el-image
-                  style="width: 200px; height: 200px"
-                  :src="StoneCrackDetect.seg_path"
-                  :zoom-rate="1.2"
-                  :preview-src-list="[StoneCrackDetect.seg_path]"
-                  :initial-index="4"
-                  fit="cover"
-                >
-                  <template #error>
-                    <div class="image-slot">NULL</div>
-                  </template>
-                </el-image>
-                <el-row>共分割得 &ensp;{{StoneCrackDetect.seg_count}}&ensp; 块</el-row>
-              </a>
-            </el-col>
-            <el-col :span="8">
-              <p class="text_2">裂缝情况</p>
-              <a v-if="StoneCrackDetect.success">
-                <el-row>
-                  存在裂缝：
-                  <a v-if="StoneCrackDetect.has_crack">是</a>
-                  <a v-else>否</a>
-                </el-row>
-                <a v-if="StoneCrackDetect.has_crack">
-                  <el-row>裂痕像素面积：{{ StoneCrackDetect.crack_data.crack_pixel_area }}</el-row>
-                  <el-row>裂痕物理面积：{{StoneCrackDetect.crack_data.crack_physical_area}}</el-row>
-                  <el-row>裂痕像素长度：{{StoneCrackDetect.crack_data.crack_pixel_length}}</el-row>
-                  <el-row>裂痕物理长度：{{StoneCrackDetect.crack_data.crack_physical_length}}</el-row>
-                  <el-row>裂痕像素平均宽度：{{StoneCrackDetect.crack_data.crack_pixel_average_width}}</el-row>
-                  <el-row>裂痕物理平均宽度：{{StoneCrackDetect.crack_data.crack_physical_average_width}}</el-row>
-                  <el-row>裂痕像素最大宽度：{{StoneCrackDetect.crack_data. crack_pixel_max_width}}</el-row>
-                  <el-row>裂痕物理最大宽度：{{StoneCrackDetect.crack_data.crack_physical_max_width}}</el-row>
-                </a>
-              </a>
-            </el-col>
-          </el-row>
-        </el-card>
-
-        <p class="text_2">
-          查看分割块：
-          <el-select
-            v-model="StoneCrackDetect.onshow.no"
-            multiple
-            collapse-tags
-            collapse-tags-tooltip
-            :max-collapse-tags="3"
-            placeholder="Select"
-            style="width: 260px"
-          >
-            <el-option
-              v-for="item in StoneCrackDetect.onshow.options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </p>
-        <div v-if="StoneCrackDetect.onshow.no[0]">
-          <el-scrollbar  height="500px">
-            <el-card v-for="block in StoneCrackDetect.onshow.no" :key="block">
-              <el-row>NO. {{ StoneCrackDetect.block_data[block].block_num }}</el-row>
-              <el-row>
-                <el-col :span="16">
-                  <el-row>
-                    <el-image
-                      style="height: 100px"
-                      :src="StoneCrackDetect.block_data[block].block_seg_image_path"
-                      :zoom-rate="1.2"
-                      :preview-src-list="[StoneCrackDetect.block_data[block].block_seg_image_path]"
-                      :initial-index="4"
-                      fit="cover"
-                    >
-                    <template #error>
-                      <div class="image-slot">NULL</div>
-                    </template>
-                    </el-image>
-                  </el-row>
-                  <el-row style="margin-top: 1%;">
-                    <el-image
-                      style="height: 100px"
-                      :src="StoneCrackDetect.block_data[block].block_detect_image_path"
-                      :zoom-rate="1.2"
-                      :preview-src-list="[StoneCrackDetect.block_data[block].block_detect_image_path]"
-                      :initial-index="4"
-                      fit="cover"
-                    >
-                      <template #error>
-                        <div class="image-slot">NULL</div>
-                      </template>
-                    </el-image>
-                  </el-row>
-                </el-col>
-                <el-col :span="7" style="margin-left: 1%;">
-                  <el-row>
-                    存在裂缝：
-                    <a v-if="StoneCrackDetect.block_data[block].has_crack">是</a>
-                    <a v-else>否</a>
-                  </el-row>
-                  <a v-if="StoneCrackDetect.block_data[block].has_crack">
-                    <el-row>裂痕像素面积：{{ StoneCrackDetect.block_data[block].crack_data.crack_pixel_area }}</el-row>
-                    <el-row>裂痕物理面积：{{ StoneCrackDetect.block_data[block].crack_data.crack_physical_area }}</el-row>
-                    <el-row>裂痕像素长度：{{ StoneCrackDetect.block_data[block].crack_data.crack_pixel_length}}</el-row>
-                    <el-row>裂痕物理长度：{{ StoneCrackDetect.block_data[block].crack_data.crack_physical_length }}</el-row>
-                    <el-row>裂痕像素平均宽度：{{ StoneCrackDetect.block_data[block].crack_data.crack_pixel_average_width }}</el-row>
-                    <el-row>裂痕物理平均宽度：{{ StoneCrackDetect.block_data[block].crack_data.crack_physical_average_width }}</el-row>
-                    <el-row>裂痕像素最大宽度：{{ StoneCrackDetect.block_data[block].crack_data.crack_pixel_max_width }}</el-row>
-                    <el-row>裂痕物理最大宽度：{{ StoneCrackDetect.block_data[block].crack_data.crack_physical_max_width }}</el-row>
-                  </a>
-                </el-col>
-              </el-row>
-            </el-card>
-          </el-scrollbar>
-        </div>
-      </div>
-
 
     </div>
 
@@ -1115,13 +901,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 210px;
+  width: 270px;
   margin: 10px;
-  height: 410px;
+  height: 430px;
   margin-left: 1%;
 }
 .compare_image{
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .compare_info{
   line-height: 18px;

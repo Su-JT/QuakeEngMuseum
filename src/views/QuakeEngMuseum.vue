@@ -103,7 +103,8 @@ export default {
       info: [
         {name:'x', data: 0},
         {name:'y', data: 0},
-        {name:'z', data: 0}
+        {name:'z', data: 0},
+        {name:'path', data:''},
       ],
       unityMessage: '',     //来自unity
 
@@ -309,7 +310,7 @@ export default {
       var that = this;
       that.$refs.unityModel.setSky((this.skyType ? 1 : 0 ).toString());//true的话传1，false传0
     },
-    add_points(image_url, x, y, z){       //对比的信息列表    添加新元素+显示在模型上
+    add_points(image_url, x, y, z, path){       //对比的信息列表    添加新元素+显示在模型上
       var that = this;
       var points = that.setting_compare.points;
       while(points.length >= that.setting_compare.max_num){     //已满，删去第一个         //在模型上隐藏位点
@@ -325,13 +326,15 @@ export default {
         }
         points[len - 1].state = '2';
       }
+      //alert(image_url);
       points.push({            //添加新元素
           url:image_url,
           //srcList:[ image_url ],
           info:[        
             {name:'x', data: x},
             {name:'y', data: y},
-            {name:'z', data: z}  ],
+            {name:'z', data: z},  
+            {name:'path', data: path} ],
           state: '1',
       });
       that.$refs.unityModel.draw_des(x + "," + y + "," + z);    //在模型上显示
@@ -415,8 +418,9 @@ export default {
       that.info[0].data = mess.x;
       that.info[1].data = mess.y;
       that.info[2].data = mess.z;
+      that.info[3].data = "/" + that.select_1 +"/" + that.select_3.split(".")[1] + ".JPG"; 
 
-      that.add_points(imageURL, mess.x, mess.y, mess.z);        ////加入对比列表并在模型上显示
+      that.add_points(imageURL, mess.x, mess.y, mess.z, that.info[3].data);        ////加入对比列表并在模型上显示
     },
 
     updatePicture(){            //接收unity信息后更新显示          
@@ -425,7 +429,9 @@ export default {
       that.info[0].data = des_url[0] - 0;
       that.info[1].data = des_url[1] - 0;
       that.info[2].data = des_url[2] - 0;
+      
       var imageURL = des_url[3].split('\r')[0];
+      that.info[3].data = imageURL.replace('/DZGCG/Pictures', '');
 
       //修改为OBS读取
       var baseURL = "https://qem-pictures.obs.cn-north-4.myhuaweicloud.com";
@@ -433,7 +439,7 @@ export default {
 
       that.url = imageURL;
       //that.srcList = [imageURL];
-      that.add_points(imageURL, des_url[0] - 0, des_url[1] - 0, des_url[2] - 0);      //加入对比列表并在模型上显示
+      that.add_points(imageURL, des_url[0] - 0, des_url[1] - 0, des_url[2] - 0, that.info[3].data);      //加入对比列表并在模型上显示
     },
     updateDistance(){         //接收unity信息后更新测距步骤条与测距结果
       var that = this;
@@ -1110,7 +1116,7 @@ export default {
   justify-content: center;
   width: 210px;
   margin: 10px;
-  height: 410px;
+  height: 430px;
   margin-left: 1%;
 }
 .compare_image{
