@@ -652,7 +652,7 @@ export default {
             
           </el-tab-pane>
 
-          <el-tab-pane name="measure">
+          <el-tab-pane name="measure" v-if="0">
             <template #label>
               <span class="custom-tabs-label">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
