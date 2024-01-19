@@ -59,17 +59,17 @@
     }
 
     var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/build.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/build.data.unityweb",
-        frameworkUrl: buildUrl + "/build.framework.js.unityweb",
-        codeUrl: buildUrl + "/build.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "first demo",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-      };
+    var loaderUrl = buildUrl + "/build.loader.js";
+    var config = {
+      dataUrl: buildUrl + "/build.data.unityweb",
+      frameworkUrl: buildUrl + "/build.framework.js.unityweb",
+      codeUrl: buildUrl + "/build.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "first demo",
+      productVersion: "0.1",
+      showBanner: unityShowBanner,
+    };
 
 
     // By default, Unity keeps WebGL canvas render target size matched with
@@ -125,10 +125,7 @@
 
     // Unity传给web
     function VueShow(str, type) {
-      //alert(str)
       window.parent.postMessage({ handle: str, type: type }, '*')
-      //window.parent.postMessage({ handle: str, type: '0' }, '*')
-      //window.parent.postMessage({ handle: '2,3,4,5\r', type: '1' }, '*')
     };
 
   </script>
